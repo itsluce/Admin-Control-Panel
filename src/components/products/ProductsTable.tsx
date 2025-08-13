@@ -29,6 +29,7 @@ import {
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import type { useProducts } from '../../hooks';
 import type {Product} from "../../types";
+import { useToast } from '../../contexts/ToastContext';
 
 interface ProductsTableProps {
   onAddProduct: () => void;
@@ -52,6 +53,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { showToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -103,10 +105,12 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
     if (productToDelete) {
       try {
         await deleteProduct(productToDelete.id);
+        showToast(`Product "${productToDelete.name}" deleted successfully!`, 'success');
         setDeleteDialogOpen(false);
         setProductToDelete(null);
       } catch (error) {
         console.error('Failed to delete product:', error);
+        showToast('Failed to delete product. Please try again.', 'error');
       }
     }
   };

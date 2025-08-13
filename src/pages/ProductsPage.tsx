@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, Snackbar } from '@mui/material';
 import { ProductsTable, ProductForm } from '../components/products';
 import type { Product, ProductFormData, ApiError } from '../types';
 import { useProducts } from '../hooks';
+import { useToast } from '../contexts/ToastContext';
 
 export const ProductsPage: React.FC = () => {
   const productsHook = useProducts();
@@ -10,15 +10,7 @@ export const ProductsPage: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const { showToast } = useToast();
 
   const handleAddProduct = (): void => {
     setSelectedProduct(null);
@@ -41,36 +33,21 @@ export const ProductsPage: React.FC = () => {
       
       if (selectedProduct) {
         await updateProduct(selectedProduct.id, data);
-        setSnackbar({
-          open: true,
-          message: 'Product updated successfully!',
-          severity: 'success',
-        });
+        showToast('Product updated successfully!', 'success');
       } else {
         await createProduct(data);
-        setSnackbar({
-          open: true,
-          message: 'Product created successfully!',
-          severity: 'success',
-        });
+        showToast('Product created successfully!', 'success');
       }
       
     } catch (error) {
       const apiError = error as ApiError;
-      setSnackbar({
-        open: true,
-        message: apiError.message || 'Operation failed. Please try again.',
-        severity: 'error',
-      });
+      showToast(apiError.message || 'Operation failed. Please try again.', 'error');
       throw error;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSnackbarClose = (): void => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
 
   return (
     <>
@@ -87,26 +64,6 @@ export const ProductsPage: React.FC = () => {
         product={selectedProduct}
         isSubmitting={isSubmitting}
       />
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            backgroundColor: snackbar.severity === 'success' 
-              ? 'rgba(16, 185, 129, 0.9)' 
-              : 'rgba(239, 68, 68, 0.9)',
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 };

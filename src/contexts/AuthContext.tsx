@@ -1,5 +1,6 @@
 import React, {createContext, type ReactNode, useContext, useEffect, useState,} from 'react';
 import { authService, apiService } from '../services';
+import { useToast } from './ToastContext';
 import type {AuthContextType, AuthTokens, LoginCredentials, User} from "../types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -12,6 +13,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     initializeAuth();
@@ -48,6 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(authResponse.user);
       setTokens(authResponse.tokens);
       apiService.setAuthTokens(authResponse.tokens);
+      showToast('Login successful! Welcome back.', 'success');
     } catch (error) {
       console.error(error)
     } finally {
@@ -59,6 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setTokens(null);
     authService.logout();
+    showToast('You have been logged out successfully.', 'info');
   };
 
   const contextValue: AuthContextType = {
